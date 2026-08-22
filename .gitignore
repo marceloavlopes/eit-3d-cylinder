@@ -5,3 +5,5 @@ __pychache__/
 *.vtu
 *.xml
 *.png
+*.xdmf
+*.h5
