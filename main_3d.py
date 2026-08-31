@@ -68,7 +68,6 @@ if __name__ == "__main__":
     F_Problem = ForwardProblem3D(mesh_direct)
     list_u0 = F_Problem.solve_forward(VD, gamma0, list_gs)
 
-    # Salvar arquivos para visualização
     xdmf_u = XDMFFile("solucao_u0_3d.xdmf")
     xdmf_u.write(list_u0[0])
 
@@ -91,31 +90,22 @@ if __name__ == "__main__":
     malha_pv.point_data["Potencial"] = list_u0[0].compute_vertex_values(mesh_direct)
     malha_pv.point_data["Condutividade"] = gamma0.compute_vertex_values(mesh_direct)
 
-    # Configurar Plotter para exportação HTML interativa
+    # Versão com malha contendo cores da solução
     plotter = pv.Plotter(notebook=False)
     plotter.set_background("lightgray")
 
-    # Filtro para extrair e desenhar todas as linhas internas da malha
     arestas_internas = malha_pv.extract_all_edges()
     plotter.add_mesh(arestas_internas, scalars="Potencial", cmap="coolwarm", line_width=1)
 
-    # Salva o arquivo interativo
     arquivo_html = "visualizacao_malha_interna.html"
     plotter.export_html(arquivo_html)
 
-    # Versão com cor uniforme
+    # Versão com malha de cor uniforme
     plotter = pv.Plotter(notebook=False)
     plotter.set_background("lightgray")
 
     arestas_internas = malha_pv.extract_all_edges()
+    plotter.add_mesh(arestas_internas, color="navy", line_width=0.1)
 
-    # Adiciona o esqueleto tridimensional completo na tela
-    plotter.add_mesh(
-        arestas_internas, 
-        color="navy",       # Cor uniforme de todas as linhas
-        line_width=0.1
-    )
-
-    # Salva o arquivo interativo
-    arquivo_html = "visualizacao_uniforme.html"
+    arquivo_html = "visualizacao_malha.html"
     plotter.export_html(arquivo_html)
