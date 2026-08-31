@@ -1,6 +1,7 @@
 from dolfin import *
 from mshr import *
 import numpy as np
+import pyvista as pv
 
 def MyMesh3D(r=1.0, h=2.0, n=25):
     cilindro = Cylinder(Point(0, 0, h/2), Point(0, 0, -h/2), r, r)
@@ -48,7 +49,7 @@ class ForwardProblem3D(object):
         return sol_u
 
 if __name__ == "__main__":
-    # Gerar malha
+    # Etapa 1 - Gerar malha
     mesh_direct = MyMesh3D(r=1.0, h=2.0, n=20)
     
     # Espaço de elementos finitos
@@ -63,7 +64,7 @@ if __name__ == "__main__":
     g1 = Expression("x[2] > 0.9 ? 1.0 : (x[2] < -0.9 ? -1.0 : 0.0)", degree=1)
     list_gs = [g1]
 
-    # Resolver problema direto
+    # Etapa 2 - Resolver problema direto
     F_Problem = ForwardProblem3D(mesh_direct)
     list_u0 = F_Problem.solve_forward(VD, gamma0, list_gs)
 
@@ -75,3 +76,46 @@ if __name__ == "__main__":
     xdmf_gamma.write(gamma0)
 
     print("Cálculo 3D concluído! Arquivos .xdmf gerados.")
+
+    # Etapa 3 - Visualização da malha
+    pontos = mesh_direct.coordinates()
+    celulas = mesh_direct.cells()
+
+    num_celulas = celulas.shape[0]
+    celulas_pv = np.hstack((np.full((num_celulas, 1), 4), celulas)).flatten()
+    tipos_celula = np.full(num_celulas, 10, dtype=np.uint8)
+
+    malha_pv = pv.UnstructuredGrid(celulas_pv, tipos_celula, pontos)
+
+    # Mapear os dados do FEniCS para o PyVista
+    malha_pv.point_data["Potencial"] = list_u0[0].compute_vertex_values(mesh_direct)
+    malha_pv.point_data["Condutividade"] = gamma0.compute_vertex_values(mesh_direct)
+
+    # Configurar Plotter para exportação HTML interativa
+    plotter = pv.Plotter(notebook=False)
+    plotter.set_background("lightgray")
+
+    # Filtro para extrair e desenhar todas as linhas internas da malha
+    arestas_internas = malha_pv.extract_all_edges()
+    plotter.add_mesh(arestas_internas, scalars="Potencial", cmap="coolwarm", line_width=1)
+
+    # Salva o arquivo interativo
+    arquivo_html = "visualizacao_malha_interna.html"
+    plotter.export_html(arquivo_html)
+
+    # Versão com cor uniforme
+    plotter = pv.Plotter(notebook=False)
+    plotter.set_background("lightgray")
+
+    arestas_internas = malha_pv.extract_all_edges()
+
+    # Adiciona o esqueleto tridimensional completo na tela
+    plotter.add_mesh(
+        arestas_internas, 
+        color="navy",       # Cor uniforme de todas as linhas
+        line_width=0.1
+    )
+
+    # Salva o arquivo interativo
+    arquivo_html = "visualizacao_uniforme.html"
+    plotter.export_html(arquivo_html)
