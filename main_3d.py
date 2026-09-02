@@ -97,7 +97,7 @@ if __name__ == "__main__":
     arestas_internas = malha_pv.extract_all_edges()
     plotter.add_mesh(arestas_internas, scalars="Potencial", cmap="coolwarm", line_width=1)
 
-    arquivo_html = "visualizacao_malha_interna.html"
+    arquivo_html = "visualizacao_malha_solucao.html"
     plotter.export_html(arquivo_html)
 
     # Versão com malha de cor uniforme
@@ -107,5 +107,5 @@ if __name__ == "__main__":
     arestas_internas = malha_pv.extract_all_edges()
     plotter.add_mesh(arestas_internas, color="navy", line_width=0.1)
 
-    arquivo_html = "visualizacao_malha.html"
+    arquivo_html = "visualizacao_malha_uniforme.html"
     plotter.export_html(arquivo_html)
